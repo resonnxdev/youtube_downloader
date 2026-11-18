@@ -2,23 +2,12 @@ document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
 
     const youtubeUrlInput = document.getElementById('youtube-url');
-    const pasteBtn = document.getElementById('paste-btn');
     const formatSelect = document.getElementById('format-select');
     const qualitySelect = document.getElementById('quality-select');
     const audioQualitySelect = document.getElementById('audio-quality-select');
     const qualityContainer = document.getElementById('quality-container');
     const audioQualityContainer = document.getElementById('audio-quality-container');
     const downloadBtn = document.getElementById('download-btn');
-
-    pasteBtn.addEventListener('click', async function() {
-        try {
-            const text = await navigator.clipboard.readText();
-            youtubeUrlInput.value = text;
-            showNotification('URL успешно вставлен!', 'success');
-        } catch (err) {
-            showNotification('Не удалось вставить из буфера обмена.', 'error');
-        }
-    });
 
     youtubeUrlInput.addEventListener('input', function() {
         const url = this.value.trim();
@@ -56,11 +45,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const quality = format === 'mp3' ? audioQualitySelect.value : qualitySelect.value;
         
         if (!url) {
-            showNotification('Пожалуйста, введите URL-адрес видео на YouTube.', 'error');
+            showNotification('Insert a YouTube link.', 'error');
             return;
         }
         if (!isValidYoutubeUrl(url)) {
-            showNotification('Пожалуйста, введите действительный URL-адрес YouTube.', 'error');
+            showNotification('Insert a valid YouTube link.', 'error');
             return;
         }
         
@@ -75,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function Download(url, format, quality) {
         downloadBtn.disabled = true;
         const originalText = downloadBtn.innerHTML;
-        downloadBtn.innerHTML = '<i data-feather="loader" class="mr-2 animate-spin"></i>Обработка...';
+        downloadBtn.innerHTML = '<i data-feather="loader" class="mr-2 animate-spin"></i>Prossesing, please wait...';
         feather.replace();
         
         fetch('/download', {
@@ -85,13 +74,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            showNotification(data.message, data.what);
-            if (data.what === 'success' && data.filename) {
+            showNotification(data.message, data.status);
+            if (data.status === 'success' && data.filename) {
                 window.location.href = '/get_file/' + data.filename;
             }
         })
         .catch(error => {
-            showNotification('Ошибка сети: ' + error, 'error');
+            showNotification('Network error: ' + error, 'error');
         })
         .finally(() => {
             downloadBtn.disabled = false;

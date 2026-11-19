@@ -23,7 +23,7 @@ def download():
     YDL_OPTIONS = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': f'{output_filename}.%(ext)s',
-        'restrictfilenames': False,  # Ключ: позволяет пробелы, скобки, | и т.д.
+        'restrictfilenames': False,
         'noplaylist': True
     }
 
@@ -66,7 +66,7 @@ def download():
 
             basename = new_filename
 
-            return jsonify({'message': f'Ваш файл {sanitized_title} - готов!', 'what': 'success', 'filename': basename}), 200
+            return jsonify({'message': f'Your file {sanitized_title} - ready!', 'what': 'success', 'filename': basename}), 200
     except Exception as ex:
         return jsonify({'message': f'Error! {ex}', 'what': 'error'}), 400
 
@@ -83,7 +83,7 @@ def get_file(filename):
         os.remove(file_path)
         print("\033[1;32m" + "File deleted." + "\033[0m")
     except FileNotFoundError as e:
-        return f"Файл не найден: {e}"
+        return f"File not found: {e}"
     except Exception as e:
         app.logger.error(f"Read error or file delete: {e}")
         return "Download error.", 500

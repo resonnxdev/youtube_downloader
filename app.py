@@ -1,13 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify
 import yt_dlp, os, time, io
 
 app = Flask(__name__, static_folder='static', template_folder="temp")
 
 @app.route('/')
-def home():
-    return redirect(url_for('index'))
-
-@app.route('/index')
 def index():
     return render_template('index.html')
 
@@ -28,8 +24,7 @@ def download():
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': f'{output_filename}.%(ext)s',
         'restrictfilenames': False,  # Ключ: позволяет пробелы, скобки, | и т.д.
-        'noplaylist': True,
-        'ffmpeg_location': 'C:/ffmpeg/bin'
+        'noplaylist': True
     }
 
     if received_format == 'mp3':
@@ -43,7 +38,10 @@ def download():
     else:  # mp4 video
         height_map = {'high': 1080, 'medium': 720, 'low': 480}
         max_height = height_map.get(received_quality, 1080)
-        YDL_OPTIONS['format'] = f'bestvideo[height<={max_height}][ext=mp4]+bestaudio[ext=m4a]/best[height<={max_height}]'
+        YDL_OPTIONS['format'] = (
+            f'bestvideo[vcodec^=avc1][height<={max_height}]+bestaudio[acodec^=mp4a]/'
+            f'best[height<={max_height}]'
+        )
         final_ext = 'mp4'
 
     try:
@@ -70,7 +68,7 @@ def download():
 
             return jsonify({'message': f'Ваш файл {sanitized_title} - готов!', 'what': 'success', 'filename': basename}), 200
     except Exception as ex:
-        return jsonify({'message': f'Ошибка! {ex}', 'what': 'error'}), 400
+        return jsonify({'message': f'Error! {ex}', 'what': 'error'}), 400
 
 @app.route('/get_file/<filename>')
 def get_file(filename):
@@ -83,12 +81,12 @@ def get_file(filename):
         return_data.seek(0)
 
         os.remove(file_path)
-        print("\033[1;32m" + "ФАЙЛ УДАЛЕН!" + "\033[0m")
+        print("\033[1;32m" + "File deleted." + "\033[0m")
     except FileNotFoundError as e:
         return f"Файл не найден: {e}"
     except Exception as e:
-        app.logger.error(f"Ошибка чтения или удаления файла: {e}")
-        return "Ошибка загрузки.", 500
+        app.logger.error(f"Read error or file delete: {e}")
+        return "Download error.", 500
     
     return send_file(return_data, download_name=filename, as_attachment=True)
 
